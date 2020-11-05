@@ -1,0 +1,291 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "name": "Realtime-AI-Machine-Learning-PreTrained.ipynb",
+      "provenance": [],
+      "machine_shape": "hm",
+      "authorship_tag": "ABX9TyP3C7560gcqKguybCjROQdf",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "accelerator": "GPU"
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/ten2TEN/3PC/blob/main/Realtime-AI-Machine-Learning-PreTrained\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "M7nn5DKjaZAD",
+        "outputId": "28572fed-bf46-47ca-b085-3e8685c27dd7",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "source": [
+        "!git clone https://github.com/CorentinJ/Real-Time-Voice-Cloning.git"
+      ],
+      "execution_count": 1,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Cloning into 'Real-Time-Voice-Cloning'...\n",
+            "remote: Enumerating objects: 1, done.\u001b[K\n",
+            "remote: Counting objects: 100% (1/1), done.\u001b[K\n",
+            "remote: Total 2540 (delta 0), reused 0 (delta 0), pack-reused 2539\u001b[K\n",
+            "Receiving objects: 100% (2540/2540), 360.90 MiB | 39.43 MiB/s, done.\n",
+            "Resolving deltas: 100% (1404/1404), done.\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "R3hziaHgazgZ"
+      },
+      "source": [
+        "**DEPENDENCIES**"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "_98oePzca4LL",
+        "outputId": "6c1ff5a2-240d-41eb-cdc4-2751ab360930",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "source": [
+        "!cd Real-Time-Voice-Cloning\n",
+        "# Install dependencies\n",
+        "!pip install -q -r requirements.txt\n",
+        "!apt-get install -qq libportaudio2"
+      ],
+      "execution_count": 4,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "\u001b[31mERROR: Could not open requirements file: [Errno 2] No such file or directory: 'requirements.txt'\u001b[0m\n",
+            "Selecting previously unselected package libportaudio2:amd64.\n",
+            "(Reading database ... 144628 files and directories currently installed.)\n",
+            "Preparing to unpack .../libportaudio2_19.6.0-1_amd64.deb ...\n",
+            "Unpacking libportaudio2:amd64 (19.6.0-1) ...\n",
+            "Setting up libportaudio2:amd64 (19.6.0-1) ...\n",
+            "Processing triggers for libc-bin (2.27-3ubuntu1.2) ...\n",
+            "/sbin/ldconfig.real: /usr/local/lib/python3.6/dist-packages/ideep4py/lib/libmkldnn.so.0 is not a symbolic link\n",
+            "\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "ShsARE9kbHvB"
+      },
+      "source": [
+        "**PULL PRE-TRAINED MODEL INTO PROJECT**"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "0LrXBr3pbONn",
+        "outputId": "03fd919a-7cfe-4ad1-d099-79a39c3ecd77",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "source": [
+        "!gdown https://tinyurl.com/yyut93rd\n",
+        "!unzip pretrained.zip"
+      ],
+      "execution_count": 5,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Downloading...\n",
+            "From: https://tinyurl.com/yyut93rd\n",
+            "To: /content/yyut93rd\n",
+            "\r0.00B [00:00, ?B/s]\r3.23kB [00:00, 5.27MB/s]\n",
+            "unzip:  cannot find or open pretrained.zip, pretrained.zip.zip or pretrained.zip.ZIP.\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "o2qEglxObUPB"
+      },
+      "source": [
+        "**CLONE FROM BROWSER AUDIO**"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "4cUvNVxqbYEJ"
+      },
+      "source": [
+        "# Code for recording audio from the browser\n",
+        "from IPython.display import Javascript\n",
+        "from google.colab import output\n",
+        "from base64 import b64decode\n",
+        "import IPython\n",
+        "import uuid\n",
+        "from google.colab import output\n",
+        " \n",
+        " \n",
+        "class InvokeButton(object):\n",
+        "  def __init__(self, title, callback):\n",
+        "    self._title = title\n",
+        "    self._callback = callback\n",
+        " \n",
+        "  def _repr_html_(self):\n",
+        "    from google.colab import output\n",
+        "    callback_id = 'button-' + str(uuid.uuid4())\n",
+        "    output.register_callback(callback_id, self._callback)\n",
+        " \n",
+        "    template = \"\"\"<button id=\"{callback_id}\" style=\"cursor:pointer;background-color:#EEEEEE;border-color:#E0E0E0;padding:5px 15px;font-size:14px\">{title}</button>\n",
+        "        <script>\n",
+        "          document.querySelector(\"#{callback_id}\").onclick = (e) => {{\n",
+        "            google.colab.kernel.invokeFunction('{callback_id}', [], {{}})\n",
+        "            e.preventDefault();\n",
+        "          }};\n",
+        "        </script>\"\"\"\n",
+        "    html = template.format(title=self._title, callback_id=callback_id)\n",
+        "    return html\n",
+        " \n",
+        "RECORD = \"\"\"\n",
+        "const sleep  = time => new Promise(resolve => setTimeout(resolve, time))\n",
+        "const b2text = blob => new Promise(resolve => {\n",
+        "  const reader = new FileReader()\n",
+        "  reader.onloadend = e => resolve(e.srcElement.result)\n",
+        "  reader.readAsDataURL(blob)\n",
+        "})\n",
+        "var record = time => new Promise(async resolve => {\n",
+        "  stream = await navigator.mediaDevices.getUserMedia({ audio: true })\n",
+        "  recorder = new MediaRecorder(stream)\n",
+        "  chunks = []\n",
+        "  recorder.ondataavailable = e => chunks.push(e.data)\n",
+        "  recorder.start()\n",
+        "  await sleep(time)\n",
+        "  recorder.onstop = async ()=>{\n",
+        "    blob = new Blob(chunks)\n",
+        "    text = await b2text(blob)\n",
+        "    resolve(text)\n",
+        "  }\n",
+        "  recorder.stop()\n",
+        "})\n",
+        "\"\"\"\n",
+        " \n",
+        "def record(sec=3):\n",
+        "  display(Javascript(RECORD))\n",
+        "  s = output.eval_js('record(%d)' % (sec*1000))\n",
+        "  b = b64decode(s.split(',')[1])\n",
+        "  with open('audio.wav','wb+') as f:\n",
+        "    f.write(b)\n",
+        "  return 'audio.wav'"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "NOPvHobUbgQE"
+      },
+      "source": [
+        "**SET WEIGHTS FOR PRE-TRAINING DATA**"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "qi-CKe6DbfZ9"
+      },
+      "source": [
+        "from IPython.display import Audio\n",
+        "from IPython.utils import io\n",
+        "from synthesizer.inference import Synthesizer\n",
+        "from encoder import inference as encoder\n",
+        "from vocoder import inference as vocoder\n",
+        "from pathlib import Path\n",
+        "import numpy as np\n",
+        "import librosa\n",
+        "\n",
+        "encoder_weights = Path(\"encoder/saved_models/pretrained.pt\")\n",
+        "vocoder_weights = Path(\"vocoder/saved_models/pretrained/pretrained.pt\")\n",
+        "syn_dir = Path(\"synthesizer/saved_models/logs-pretrained/taco_pretrained\")\n",
+        "encoder.load_model(encoder_weights)\n",
+        "synthesizer = Synthesizer(syn_dir)\n",
+        "vocoder.load_model(vocoder_weights)"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "phWnl9kobqsA"
+      },
+      "source": [
+        "**CLONING REAL-TIME VOICE**"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "zABAJN7YbuK_"
+      },
+      "source": [
+        "#@title Deep vocoder\n",
+        "def synth():\n",
+        "  text = \"This is being said in my own voice.  The computer has learned to do an impression of me.\" #@param {type:\"string\"}\n",
+        "  print(\"Now recording for 10 seconds, say what you will...\")\n",
+        "  record(10)\n",
+        "  print(\"Audio recording complete\")\n",
+        "  \n",
+        "  in_fpath = Path(\"audio.wav\")\n",
+        "  reprocessed_wav = encoder.preprocess_wav(in_fpath)\n",
+        "  original_wav, sampling_rate = librosa.load(in_fpath)\n",
+        "  preprocessed_wav = encoder.preprocess_wav(original_wav, sampling_rate)\n",
+        "  embed = encoder.embed_utterance(preprocessed_wav)\n",
+        "  print(\"Synthesizing new audio...\")\n",
+        "  \n",
+        "  with io.capture_output() as captured:\n",
+        "    specs = synthesizer.synthesize_spectrograms([text], [embed])\n",
+        "    \n",
+        "  generated_wav = vocoder.infer_waveform(specs[0])\n",
+        "  generated_wav = np.pad(generated_wav, (0, synthesizer.sample_rate), mode=\"constant\")\n",
+        "  display(Audio(generated_wav, rate=synthesizer.sample_rate))\n",
+        "  \n",
+        "InvokeButton('Start recording', synth)"
+      ],
+      "execution_count": null,
+      "outputs": []
+    }
+  ]
+}
